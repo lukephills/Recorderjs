@@ -30,7 +30,7 @@
       });
     }
 
-    this.configure = function(cfg){
+    this.Configure = function(cfg){
       for (var prop in cfg){
         if (cfg.hasOwnProperty(prop)){
           config[prop] = cfg[prop];
@@ -38,29 +38,39 @@
       }
     }
 
-    this.record = function(){
+    this.Start = function(){
       recording = true;
     }
 
-    this.stop = function(){
+    this.Stop = function(){
       recording = false;
     }
 
-    this.clear = function(){
-      worker.postMessage({ command: 'clear' });
+    this.Clear = function(){
+      worker.postMessage({ command: 'Clear' });
     }
 
-    this.getBuffer = function(cb) {
+    this.GetBuffers = function(cb) {
       currCallback = cb || config.callback;
-      worker.postMessage({ command: 'getBuffer' })
+      worker.postMessage({ command: 'GetBuffers' })
     }
 
-    this.exportWAV = function(cb, type){
+    this.ExportStereo = function(cb, type){
       currCallback = cb || config.callback;
       type = type || config.type || 'audio/wav';
       if (!currCallback) throw new Error('Callback not set');
       worker.postMessage({
-        command: 'exportWAV',
+        command: 'ExportStereo',
+        type: type
+      });
+    }
+
+    this.ExportMono = function(cb, type){
+      currCallback = cb || config.callback;
+      type = type || config.type || 'audio/wav';
+      if (!currCallback) throw new Error('Callback not set');
+      worker.postMessage({
+        command: 'ExportMono',
         type: type
       });
     }
@@ -71,17 +81,14 @@
     }
 
     source.connect(this.node);
-    this.node.connect(this.context.destination);    //this should not be necessary
+    this.node.connect(this.context.destination);    // if the script node is not connected to an output the "onaudioprocess" event is not triggered in chrome.
   };
 
-  Recorder.forceDownload = function(blob, filename){
+  Recorder.Download = function(blob, filename){
     var url = (window.URL || window.webkitURL).createObjectURL(blob);
-    var link = window.document.createElement('a');
+    var link = document.getElementById("save");
     link.href = url;
     link.download = filename || 'output.wav';
-    var click = document.createEvent("Event");
-    click.initEvent("click", true, true);
-    link.dispatchEvent(click);
   }
 
   window.Recorder = Recorder;

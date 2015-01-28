@@ -46,14 +46,14 @@
   }
 
   function startRecording(button) {
-    recorder && recorder.record();
+    recorder && recorder.Start();
     button.disabled = true;
     button.nextElementSibling.disabled = false;
     __log('Recording...');
   }
 
   function stopRecording(button) {
-    recorder && recorder.stop();
+    recorder && recorder.Stop();
     button.disabled = true;
     button.previousElementSibling.disabled = false;
     __log('Stopped recording.');
@@ -61,11 +61,11 @@
     // create WAV download link using audio data blob
     createDownloadLink();
     
-    recorder.clear();
+    recorder.Clear();
   }
 
   function createDownloadLink() {
-    recorder && recorder.exportWAV(function(blob) {
+    recorder && recorder.ExportStereo(function(blob) {
       var url = URL.createObjectURL(blob);
       var li = document.createElement('li');
       var au = document.createElement('audio');
