@@ -8,20 +8,17 @@ this.onmessage = function(e){
     case 'init':
       init(e.data.config);
       break;
-    case 'Start':
-      Start(e.data.buffer);
+    case 'record':
+      record(e.data.buffer);
       break;
-    case 'ExportStereo':
-      ExportStereo(e.data.type);
+    case 'exportWAV':
+      exportWAV(e.data.type);
       break;
-    case 'ExportMono':
-      ExportMono(e.data.type);
+    case 'getBuffer':
+      getBuffer();
       break;
-    case 'GetBuffers':
-      GetBuffers();
-      break;
-    case 'Clear':
-      Clear();
+    case 'clear':
+      clear();
       break;
   }
 };
@@ -30,13 +27,13 @@ function init(config){
   sampleRate = config.sampleRate;
 }
 
-function Start(inputBuffer){
+function record(inputBuffer){
   recBuffersL.push(inputBuffer[0]);
   recBuffersR.push(inputBuffer[1]);
   recLength += inputBuffer[0].length;
 }
 
-function ExportStereo(type){
+function exportWAV(type){
   var bufferL = mergeBuffers(recBuffersL, recLength);
   var bufferR = mergeBuffers(recBuffersR, recLength);
   var interleaved = interleave(bufferL, bufferR);
@@ -46,22 +43,14 @@ function ExportStereo(type){
   this.postMessage(audioBlob);
 }
 
-function ExportMono(type){
-  var bufferL = mergeBuffers(recBuffersL, recLength);
-  var dataview = encodeWAV(bufferL, true);
-  var audioBlob = new Blob([dataview], { type: type });
-
-  this.postMessage(audioBlob);
-}
-
-function GetBuffers() {
+function getBuffer() {
   var buffers = [];
   buffers.push( mergeBuffers(recBuffersL, recLength) );
   buffers.push( mergeBuffers(recBuffersR, recLength) );
   this.postMessage(buffers);
 }
 
-function Clear(){
+function clear(){
   recLength = 0;
   recBuffersL = [];
   recBuffersR = [];
@@ -105,14 +94,14 @@ function writeString(view, offset, string){
   }
 }
 
-function encodeWAV(samples, mono){
+function encodeWAV(samples){
   var buffer = new ArrayBuffer(44 + samples.length * 2);
   var view = new DataView(buffer);
 
   /* RIFF identifier */
   writeString(view, 0, 'RIFF');
-  /* file length */
-  view.setUint32(4, 32 + samples.length * 2, true);
+  /* RIFF chunk length */
+  view.setUint32(4, 36 + samples.length * 2, true);
   /* RIFF type */
   writeString(view, 8, 'WAVE');
   /* format chunk identifier */
@@ -122,7 +111,7 @@ function encodeWAV(samples, mono){
   /* sample format (raw) */
   view.setUint16(20, 1, true);
   /* channel count */
-  view.setUint16(22, mono?1:2, true);
+  view.setUint16(22, 2, true);
   /* sample rate */
   view.setUint32(24, sampleRate, true);
   /* byte rate (sample rate * block align) */
