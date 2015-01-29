@@ -6,9 +6,12 @@
     var config = cfg || {};
     var bufferLen = config.bufferLen || 4096;
     this.context = source.context;
-    this.node = (this.context.createScriptProcessor ||
-    this.context.createJavaScriptNode).call(this.context,
-        bufferLen, 2, 2);
+    if(!this.context.createScriptProcessor){
+      this.node = this.context.createJavaScriptNode(bufferLen, 2, 2);
+    } else {
+      this.node = this.context.createScriptProcessor(bufferLen, 2, 2);
+    }
+
     var worker = new Worker(config.workerPath || WORKER_PATH);
     worker.postMessage({
       command: 'init',
@@ -50,9 +53,9 @@
       worker.postMessage({ command: 'clear' });
     }
 
-    this.getBuffer = function(cb) {
+    this.getBuffers = function(cb) {
       currCallback = cb || config.callback;
-      worker.postMessage({ command: 'getBuffer' })
+      worker.postMessage({ command: 'getBuffers' })
     }
 
     this.exportWAV = function(cb, type){
@@ -65,23 +68,30 @@
       });
     }
 
+    this.exportMonoWAV = function(cb, type){
+      currCallback = cb || config.callback;
+      type = type || config.type || 'audio/wav';
+      if (!currCallback) throw new Error('Callback not set');
+      worker.postMessage({
+        command: 'exportMonoWAV',
+        type: type
+      });
+    }
+
     worker.onmessage = function(e){
       var blob = e.data;
       currCallback(blob);
     }
 
     source.connect(this.node);
-    this.node.connect(this.context.destination);    //this should not be necessary
+    this.node.connect(this.context.destination);   // if the script node is not connected to an output the "onaudioprocess" event is not triggered in chrome.
   };
 
-  Recorder.forceDownload = function(blob, filename){
+  Recorder.setupDownload = function(blob, filename){
     var url = (window.URL || window.webkitURL).createObjectURL(blob);
-    var link = window.document.createElement('a');
+    var link = document.getElementById("save");
     link.href = url;
     link.download = filename || 'output.wav';
-    var click = document.createEvent("Event");
-    click.initEvent("click", true, true);
-    link.dispatchEvent(click);
   }
 
   window.Recorder = Recorder;
