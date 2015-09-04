@@ -2,7 +2,7 @@
 
   var WORKER_PATH = 'recorderWorker.js';
 
-  var Recorder = function(source, cfg){
+  var RecorderJS = function(source, cfg){
     var config = cfg || {};
     var bufferLen = config.bufferLen || 4096;
     this.context = source.context;
@@ -87,13 +87,13 @@
     this.node.connect(this.context.destination);   // if the script node is not connected to an output the "onaudioprocess" event is not triggered in chrome.
   };
 
-  Recorder.setupDownload = function(blob, filename){
+  RecorderJS.setupDownload = function(blob, filename){
     var url = (window.URL || window.webkitURL).createObjectURL(blob);
     var link = document.getElementById("save");
     link.href = url;
     link.download = filename || 'output.wav';
   }
 
-  window.Recorder = Recorder;
+  window.RecorderJS = RecorderJS;
 
 })(window);

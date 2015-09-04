@@ -1,13 +1,14 @@
-var Recorder: {
-    new(AudioSource: any, config?: any): Recorder;
+declare var RecorderJS: {
+    new(AudioSource: any, config?: any): RecorderJS;
 };
 
-interface Recorder {
+interface RecorderJS {
     record(): void;
     stop(): void;
     clear(): void;
-    exportWav(callback?: any, type?: string);
-    forceDownload(blob, filename?): void;
+    exportWAV(callback?: any, type?: string);
+    exportMonoWAV(callback?: any, type?: string);
+    setupDownload(blob, filename?): void;
     getBuffer(callback?: any)
-    configure(any): void
+    configure(any): void;
 }
